@@ -47,6 +47,8 @@ from mozillapulse.messages import base
 import sys
 
 def main():
+    if len(sys.argv) < 2:
+        sys.exit("Usage: push_update.py $branch $channel")
 
     # Message to send
     mymessage = base.GenericMessage()
@@ -54,8 +56,9 @@ def main():
     mymessage.data['what'] = 'This is a mozmill on-demand update trigger'
     mymessage.data['branch'] = sys.argv[1]
     mymessage.data['channel'] = sys.argv[2]
-    mymessage.data['build'] = sys.argv[3]
-
+    
+    print "Triggering update: branch=%s, channel=%s" % (mymessage.data['branch'],  \
+                                                        mymessage.data['channel']
     # Make a publisher
     pulse = publishers.PulseTestPublisher()
 

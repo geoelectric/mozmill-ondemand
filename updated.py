@@ -43,7 +43,7 @@ import sys
 import subprocess
 
 # Update test a build
-def test_update(branch, platform, channel, build):
+def test_update(branch, platform, channel):
     bash_loc = "/bin/bash"
     update_loc = sys.argv[2]
     args = ("/bin/echo", bash_loc, update_loc, branch, platform, channel, build)
@@ -55,21 +55,24 @@ def test_update(branch, platform, channel, build):
  
 # Define a callback
 def got_message(data, message):
-    print "processing new message..."
+    print "Processing update trigger..."
     print "%s" % (message)
 
     branch = data['payload']['branch']
     platform = sys.argv[1];
     channel = data['payload']['channel']
-    build = data['payload']['build']
     print "  branch = %s" % (branch)
     print "  platform = %s" % (platform)
     print "  channel = %s" % (channel)
-    print "  build id = %s" % (build)
 
-    test_update(branch, platform, channel, build)
+    test_update(branch, platform, channel)
+    print "Listening for next update trigger..."
 
 def main():
+    # args
+    if len(sys.argv) < 2:
+        sys.exit("Usage: updated.py $platform $path_to_update_script")
+
     # unique applabel
     pulse = consumers.PulseTestConsumer(applabel='mozmill-pulse-updates')
 
@@ -77,6 +80,7 @@ def main():
     pulse.configure(topic='mozmill.update', callback=got_message)
 
     # Block and call the callback function when a message comes in
+    print "Listening for update trigger..."
     pulse.listen()
 
 if __name__ == "__main__":
