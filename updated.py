@@ -41,12 +41,15 @@
 from mozillapulse import consumers
 import sys
 import subprocess
+import uuid
+
+# Globals shared with callback
+platform = None
+script = None
 
 # Update test a build
-def test_update(branch, platform, channel):
-    bash_loc = "/bin/bash"
-    update_loc = sys.argv[2]
-    args = ("/bin/echo", bash_loc, update_loc, branch, platform, channel)
+def test_update(branch, platform, channel, script):
+    args = ("echo", "python", script, branch, platform, channel)
     print "  running: %s" % (" ".join(args))
     p = subprocess.Popen(args)
     retcode = p.wait()
@@ -55,26 +58,40 @@ def test_update(branch, platform, channel):
  
 # Define a callback
 def got_message(data, message):
+    global platform
+    global script    
+
     print "Processing update trigger..."
     print "%s" % (message)
 
     branch = data['payload']['branch']
-    platform = sys.argv[1];
     channel = data['payload']['channel']
     print "  branch = %s" % (branch)
     print "  platform = %s" % (platform)
     print "  channel = %s" % (channel)
 
-    test_update(branch, platform, channel)
+    test_update(branch, platform, channel, script)
     print "Listening for next update trigger..."
 
 def main():
+    global platform
+    global script
+
     # args
     if len(sys.argv) < 2:
-        sys.exit("Usage: updated.py $platform $path_to_update_script")
+        sys.exit("Usage: updated.py $platform [$path_to_update_script]")
+
+    platform = sys.argv[1]
+    if len(sys.argv) == 2:
+        script = './release_update.py'
+    else:
+        script = sys.argv[2]
 
     # unique applabel
-    pulse = consumers.PulseTestConsumer(applabel='mozmill-pulse-updates')
+    label = 'mozmill.update-%s' % (uuid.uuid1().hex)
+    pulse = consumers.PulseTestConsumer(applabel=label)
+    print "Registered with pulse server as %s" % (label)
+    print "Will run updates for %s using %s" % (platform, script)
 
     # Tell the broker what to listen for and give the callback
     pulse.configure(topic='mozmill.update', callback=got_message)

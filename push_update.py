@@ -47,7 +47,7 @@ from mozillapulse.messages import base
 import sys
 
 def main():
-    if len(sys.argv) < 2:
+    if len(sys.argv) < 3:
         sys.exit("Usage: push_update.py $branch $channel")
 
     # Message to send
