@@ -44,15 +44,17 @@ from mozillapulse import publishers
 # for consumers
 from mozillapulse.messages import base
 
+import sys
+
 def main():
 
     # Message to send
     mymessage = base.GenericMessage()
-    mymessage.routing_parts.append('geo.build')
-    mymessage.data['what']    = 'This is a smoketest message'
-    mymessage.data['why']     = 'This lets geo know he can publish a message'
-    mymessage.data['url']     = 'http://ftp.mozilla.org/pub/mozilla.org/firefox/nightly/2010/12/2010-12-20-03-mozilla-central/firefox-4.0b9pre.en-US.mac64.dmg'
-    mymessage.data['build'] = '20101221030401'
+    mymessage.routing_parts.append('mozmill.update')
+    mymessage.data['what'] = 'This is a mozmill on-demand update trigger'
+    mymessage.data['branch'] = sys.argv[1]
+    mymessage.data['channel'] = sys.argv[2]
+    mymessage.data['build'] = sys.argv[3]
 
     # Make a publisher
     pulse = publishers.PulseTestPublisher()

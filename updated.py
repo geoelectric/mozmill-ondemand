@@ -39,28 +39,14 @@
 
 # Import
 from mozillapulse import consumers
-import urllib
-import os
 import sys
 import subprocess
 
-# Download a build
-def download(url, destination):
-    print '  downloading %s to %s' % (url, destination)
-    urllib.urlretrieve(url, destination)
-    # XXX: need to check result code
-    print '  done downloading %s' % (destination)
-
 # Update test a build
-def test_update(binary, build, report_dest):
-    python_loc = "/Users/geo/.virtualenvs/triggered/bin/python"
-    update_loc = "/Users/geo/hg/mozmill-automation/testrun_update.py"
-    args = (python_loc, update_loc, "--channel", "nightly",
-                                    "--logfile", "/tmp/nightly.log",
-                                    "--report", report_dest,
-                                    "--target-buildid", build,
-                                    binary)
-
+def test_update(branch, platform, channel, build):
+    bash_loc = "/bin/echo"
+    update_loc = sys.argv[2]
+    args = (bash_loc, update_loc, branch, platform, channel, build)
     print "  running: %s" % (" ".join(args))
     p = subprocess.Popen(args)
     retcode = p.wait()
@@ -72,43 +58,23 @@ def got_message(data, message):
     print "processing new message..."
     print "%s" % (message)
 
+    branch = data['payload']['branch']
+    platform = sys.argv[1];
+    channel = data['payload']['channel']
     build = data['payload']['build']
-    url = data['payload']['url']
+    print "  branch = %s" % (branch)
+    print "  platform = %s" % (platform)
+    print "  channel = %s" % (channel)
     print "  build id = %s" % (build)
-    print "  url = %s" % (url)
 
-    # XXX: this should be improved w/ getopts/error handling
-    destination_dir = sys.argv[1]
-
-    # get full extension of the current filename
-    current_file = url.split("/")[-1]
-    current_ext = ".".join(current_file.split(".")[-3:]) # XXX: kludge!
-
-    # does prev exist?
-    # this should arguably be an open inside a try block
-    prev_file = "%s/prev.%s" % (destination_dir, current_ext)
-    print "  checking to see if '%s' exists" % (prev_file)
-    if os.path.isfile(prev_file):
-      print "  %s exists" % (prev_file)
-      
-      # XXX: needs getopts, etc.
-      report_dest = sys.argv[2]
-      test_update(prev_file, build, report_dest)
-
-      print "  deleting %s" % (prev_file)
-      os.remove(prev_file)
-      
-    download(url, prev_file)
+    test_update(branch, platform, channel, build)
 
 def main():
     # unique applabel
-    pulse = consumers.PulseTestConsumer(applabel='gmealer@mozilla.com|gmealer-pulse-build')
+    pulse = consumers.PulseTestConsumer(applabel='mozmill-pulse-updates')
 
     # Tell the broker what to listen for and give the callback
-    pulse.configure(topic='geo.build', callback=got_message)
-
-    # Could also give multiple topics:
-    # pulse.configure(topic=['topic1', 'topic2'], callback=got_message)
+    pulse.configure(topic='mozmill.update', callback=got_message)
 
     # Block and call the callback function when a message comes in
     pulse.listen()
