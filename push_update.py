@@ -58,7 +58,7 @@ def main():
     mymessage.data['channel'] = sys.argv[2]
     
     print "Triggering update: branch=%s, channel=%s" % (mymessage.data['branch'],  \
-                                                        mymessage.data['channel']
+                                                        mymessage.data['channel'])
     # Make a publisher
     pulse = publishers.PulseTestPublisher()
 
