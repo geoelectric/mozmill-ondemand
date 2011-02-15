@@ -46,7 +46,7 @@ import subprocess
 def test_update(branch, platform, channel):
     bash_loc = "/bin/bash"
     update_loc = sys.argv[2]
-    args = ("/bin/echo", bash_loc, update_loc, branch, platform, channel, build)
+    args = ("/bin/echo", bash_loc, update_loc, branch, platform, channel)
     print "  running: %s" % (" ".join(args))
     p = subprocess.Popen(args)
     retcode = p.wait()
