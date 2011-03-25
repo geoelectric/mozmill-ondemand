@@ -66,14 +66,14 @@ def got_message(data, message):
     # If platform is specified, this is a single platform test
     if 'platform' in data['payload']:
         requested_platform = data['payload']['platform']
-        print '  Received request for %s' % requested_platform
+        print '  received request for %s' % requested_platform
     else:
         requested_platform = ""
-        print "  Received request for all platforms"
+        print "  received request for all platforms"
 
     # If this is a single platform test, are we it?
     if requested_platform and (requested_platform != platform):
-        print '  Request is not for %s, ignoring' % platform
+        print '  request is not for %s, ignoring' % platform
     else:
         print "Running update tests"
         branch = data['payload']['branch']
