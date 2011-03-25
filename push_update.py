@@ -48,17 +48,27 @@ import sys
 
 def main():
     if len(sys.argv) < 3:
-        sys.exit("Usage: push_update.py $branch $channel")
+        sys.exit("Usage: push_update.py $branch $channel [$platform]")
 
     # Message to send
     mymessage = base.GenericMessage()
     mymessage.routing_parts.append('mozmill.update')
-    mymessage.data['what'] = 'This is a mozmill on-demand update trigger'
+    mymessage.data['what'] = 'This is a mozmill on-demand update test request'
     mymessage.data['branch'] = sys.argv[1]
     mymessage.data['channel'] = sys.argv[2]
-    
-    print "Triggering update: branch=%s, channel=%s" % (mymessage.data['branch'],  \
-                                                        mymessage.data['channel'])
+
+    # Are we doing a single-platform test? If so, add the platform key
+    format = "Requesting update tests for %s: branch=%s, channel=%s"
+    if len(sys.argv) > 3:
+        mymessage.data['platform'] = sys.argv[3]
+        print format % (mymessage.data['platform'], \
+                        mymessage.data['branch'],   \
+                        mymessage.data['channel'])
+    else:
+        print format % ('all platforms',           \
+                        mymessage.data['branch'],  \
+                        mymessage.data['channel'])
+
     # Make a publisher
     pulse = publishers.PulseTestPublisher()
 

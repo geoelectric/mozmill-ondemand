@@ -49,7 +49,7 @@ script = None
 
 # Update test a build
 def test_update(branch, platform, channel, script):
-    args = ("echo", "python", script, branch, platform, channel)
+    args = ("python", script, branch, platform, channel)
     print "  running: %s" % (" ".join(args))
     p = subprocess.Popen(args)
     retcode = p.wait()
@@ -59,19 +59,31 @@ def test_update(branch, platform, channel, script):
 # Define a callback
 def got_message(data, message):
     global platform
-    global script    
+    global script
 
-    print "Processing update trigger..."
-    print "%s" % (message)
+    print "Processing update test request ..."
 
-    branch = data['payload']['branch']
-    channel = data['payload']['channel']
-    print "  branch = %s" % (branch)
-    print "  platform = %s" % (platform)
-    print "  channel = %s" % (channel)
+    # If platform is specified, this is a single platform test
+    if 'platform' in data['payload']:
+        requested_platform = data['payload']['platform']
+        print '  Received request for %s' % requested_platform
+    else:
+        requested_platform = ""
+        print "  Received request for all platforms"
 
-    test_update(branch, platform, channel, script)
-    print "Listening for next update trigger..."
+    # If this is a single platform test, are we it?
+    if requested_platform and (requested_platform != platform):
+        print '  Request is not for %s, ignoring' % platform
+    else:
+        print "Running update tests"
+        branch = data['payload']['branch']
+        channel = data['payload']['channel']
+        print '  branch = %s' % (branch)
+        print '  platform = %s' % (platform)
+        print '  channel = %s' % (channel)
+        test_update(branch, platform, channel, script)
+
+    print "Listening for next update test request..."
 
 def main():
     global platform
@@ -91,13 +103,13 @@ def main():
     label = 'mozmill.update-%s' % (uuid.uuid1().hex)
     pulse = consumers.PulseTestConsumer(applabel=label)
     print "Registered with pulse server as %s" % (label)
-    print "Will run updates for %s using %s" % (platform, script)
+    print "Will run update tests for %s using %s" % (platform, script)
 
     # Tell the broker what to listen for and give the callback
     pulse.configure(topic='mozmill.update', callback=got_message)
 
     # Block and call the callback function when a message comes in
-    print "Listening for update trigger..."
+    print "Listening for update test requests..."
     pulse.listen()
 
 if __name__ == "__main__":
